@@ -1,0 +1,124 @@
+local DestroyEvent = ({pcall(function() return game:GetService("ReplicatedStorage").Events.Equipment.AttachToRodRemote end)})[2]
+assert(DestroyEvent, "Destroy event not found.")
+
+if rconsolewarn then
+    rconsoleclear()
+    rconsolename("Bitzs funny thing idfk")
+    rconsoleprint("DestroyEvent: Found\n\n")
+    rconsoleprint([[
+Usage:
+    callFunction("functionNameHere", arguments)
+
+Functions names: (NOT case-sensitive)
+    DeleteWorkspace,
+    KillAll,
+    Shutdown,
+    KillPlayer | Arguments: PlayerName, SearchWithDisplayname (Default: false)
+    KickPlayer | Arguments: PlayerName, SearchWithDisplayname (Default: false)
+
+Example:
+    callFunction("KillALL")
+    callFunction("shutDown")
+    callFunction("DeleteWorkspace")
+    callFunction("KillPlayer", "bitzgamer1123", false) -- It autofills the displayname/username so you could also type "bitzgam"
+    callFunction("KickPlayer", "BitzsDisplayname", true) -- It autofills the displayname/username so you could also type "BitzsDi"
+]])
+end
+local Players      = game:GetService("Players")
+
+function DestroyFunction(Obj) 
+    DestroyEvent:FireServer("unweld", nil, Obj, Obj)
+end
+
+function GetPlayer(Name, SearchWithDisplayname)
+	for i,v in pairs(Players:GetPlayers()) do 
+        if (v.Name:sub(1, #Name):lower() == Name:lower()) or (SearchWithDisplayname and (v.DisplayName:sub(1, #Name):lower() == Name:lower())) then 
+            return v  
+        end  
+    end
+    return nil
+end
+
+function ClearAllChildren(Parent)
+    local Parent = typeof(Parent) == "Instance" and Parent:GetChildren() or Parent
+
+    for i,v in pairs(Parent) do 
+        DestroyFunction(v)
+    end
+end
+
+local function Shutdown()
+    ClearAllChildren(Players)
+end
+
+local function KillAll()
+    ClearAllChildren((function() 
+        local AlivePlayers = {}
+        for i,v in pairs(Players:GetPlayers()) do 
+            if v and v.Character and v.Character:FindFirstChild("Head") then 
+                table.insert(AlivePlayers, v.Character.Head)
+            end
+        end
+        return AlivePlayers
+    end)())
+end
+
+local function KillPlayer(Name, SearchWithDisplayname)
+    local ChosenPlayer = GetPlayer(Name, SearchWithDisplayname)
+    if ChosenPlayer and ChosenPlayer.Character and ChosenPlayer.Character:FindFirstChild("Head") then 
+        DestroyFunction(ChosenPlayer.Character.Head)
+    end
+end
+
+local function KickPlayer(Name, SearchWithDisplayname)
+    local ChosenPlayer = GetPlayer(Name, SearchWithDisplayname)
+    if ChosenPlayer  then 
+        DestroyFunction(ChosenPlayer)
+    end
+end
+
+local function DeleteWorkspace()
+    ClearAllChildren((function()
+        local TempT = {}
+        for i,v in pairs(workspace:GetChildren()) do 
+            if not (Players:FindFirstChild(v.Name)) and not (v:IsA("Terrain")) then 
+                table.insert(TempT, v)
+            end
+        end
+        return TempT
+    end)())
+end
+
+local functions = {
+    ["deleteworkspace"] = DeleteWorkspace;
+    ["killall"]         = KillAll;
+    ["shutdown"]        = Shutdown;
+    ["killplayer"]      = KillPlayer;
+    ["kickplayer"]      = KickPlayer;
+}
+
+getgenv().callFunction = function(functionName, ...)
+    local func = rawget(functions, tostring(functionName):lower())
+    if func then 
+        func(...)
+    end
+end
+
+--[[
+    Usage:
+        callFunction("functionNameHere", arguments)
+
+    Functions names: (NOT case-sensitive)
+        DeleteWorkspace,
+        KillAll,
+        Shutdown,
+        KillPlayer | Arguments: PlayerName, SearchWithDisplayname (Default: false)
+        KickPlayer | Arguments: PlayerName, SearchWithDisplayname (Default: false)
+
+    Example:
+        callFunction("KillALL")
+        callFunction("shutDown")
+        callFunction("DeleteWorkspace")
+        callFunction("KillPlayer", "bitzgamer1123", false) -- It autofills the displayname/username so you could also type "bitzgam"
+        callFunction("KickPlayer", "BitzsDisplayname", true) -- It autofills the displayname/username so you could also type "BitzsDi"
+--]]
